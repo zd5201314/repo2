@@ -1,0 +1,487 @@
+一：POM添加依赖JAR
+
+    <!--  Servlet依赖   -->
+    <dependency>
+        <groupId>javax.servlet</groupId>
+        <artifactId>javax.servlet-api</artifactId>
+        <version>3.0.1</version>
+        <scope>compile</scope>
+    </dependency>
+    <!-- Spring框架Web组件依赖 -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-web</artifactId>
+      <version>4.1.2.RELEASE</version>
+      <scope>compile</scope>
+    </dependency>
+    <!-- SpringMVC组件依赖 -->
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-webmvc</artifactId>
+      <version>4.1.2.RELEASE</version>
+      <scope>compile</scope>
+    </dependency>
+
+二：修改web.xml配置文件，配置SpringMVC分发器（基于Servlet实现MVC单一入口URL分发）
+
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="3.0" xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
+
+    <servlet>
+        <servlet-name>spring</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>spring</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+</web-app>
+
+三：在 /WEB-INF/ 路径下创建SpringMVC配置文件，文件名为 [ <servlet-name> ]-servlet.xml
+
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx" xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd 
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context.xsd 
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+          http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!-- 配置反射自动扫描的包 -->
+    <context:component-scan base-package="com.bwf.*" />
+
+    <!-- 注册HandlerMapper、HandlerAdapter两个映射类 映射类和方法 -->
+    <mvc:annotation-driven />
+
+    <!-- 访问静态资源时，让请求通过  -->
+    <mvc:default-servlet-handler />
+    <mvc:resources location="/WEB-INF/resources/js/" mapping="/js/**"></mvc:resources>
+    <mvc:resources location="/WEB-INF/resources/css/" mapping="/css/**"></mvc:resources>
+    <mvc:resources location="/WEB-INF/resources/img/" mapping="/img/**"></mvc:resources>
+
+    <!-- 视图解析器 -->
+    <bean
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/view/"></property>
+        <property name="suffix" value=".jsp"></property>
+    </bean>
+</beans>
+
+
+一：SpringMVC控制器Controller基础
+
+1.1：SpringMVC基本请求URL：                   [ 协议://ip地址:端口号/项目名称/控制器/方法 ]
+
+1.2：控制器注解   
+
+    @Controller                                             [ org.springframework.stereotype.Controller ]
+    @RequestMapping("/控制器")                [ org.springframework.web.bind.annotation.RequestMapping ]
+
+1.3：方法注解
+
+    @RequestMapping("/方法")                   [ org.springframework.web.bind.annotation.RequestMapping ]
+
+1.4：控制器返回值与视图View
+
+    return "控制器/方法";
+
+二：@RequestMapping详解
+
+2.1：name 指定映射名称（无特殊含义，类似注释，提高可读性）
+
+2.2：value 指定映射方法部门的URL （"单值"，{数组}）
+        控制器与方法的缺省（默认）处理
+
+2.3：method 指定请求的方式  （"单值"，{数组}）
+        enum RequestMethod
+
+2.4：headers 指定请求的头信息 （"单值"，{数组}）
+        Host                               localhost:8080  
+        Accept                           text/html,application/xhtml+xml,application/xml;q=0.9  
+        Accept-Language         fr,en-gb;q=0.7,en;q=0.3  
+        Accept-Encoding          gzip,deflate  
+        Accept-Charset             ISO-8859-1,utf-8;q=0.7,*;q=0.7  
+        Keep-Alive                    300 
+
+2.5：params 指定请求的参数 （"单值"，{数组}）
+
+2.6：consumes 约束请求的内容类型（Content-Type） （"单值"，{数组}）
+
+2.7：produces 指定请求的返回类型 （"单值"，{数组}）
+
+
+
+
+
+一：JSON格式
+
+1.1：方法注解 @ResponseBody
+
+1.2：POM添加JSON依赖
+
+    <!--json所需要的依赖-->
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.7.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.7.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.7.3</version>
+    </dependency>
+
+1.3：配置文件中配置对象转换JSON
+
+    <!-- JSON支持 -->
+    <!--转化json-->
+    <bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <!--json视图拦截器，读取到@ResponseBody的时候去配置它-->
+                <ref bean="mappingJacksonHttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>
+    <!--json转化器，它可以将结果转化-->
+    <bean id="mappingJacksonHttpMessageConverter" class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="supportedMediaTypes">
+            <list>
+                <value>application/json;charset=UTF-8</value>
+            </list>
+        </property>
+    </bean> 
+
+1.4：配置文件增加头信息
+
+    http://www.springframework.org/schema/util
+    http://www.springframework.org/schema/util/spring-util-3.0.xsd
+    xmlns:util="http://www.springframework.org/schema/util"
+
+二：视图View
+
+三：重定向（redirect）和转发（forward）
+
+    重定向：return "redirect:/控制器/方法";
+
+    转发：return "forward:/控制器/方法";
+
+一：请求参数
+
+1.1 基础数据类型
+      作为方法的形参
+
+1.2 中文编码格式处理   过滤器
+
+     <filter>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+        <init-param>
+            <param-name>encoding</param-name>
+            <param-value>utf-8</param-value>
+        </init-param>
+    </filter>
+    <filter-mapping>
+        <filter-name>CharacterEncodingFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+
+1.3 表单控件重复name属性（复选框）
+
+1.4 参数对象化
+      参数name直接写属性名，不用写对象名。
+      参数name重复，要写name[int index]。
+
+
+二：@RequestParam参数绑定
+
+2.1 required 是否为必填项（默认true）
+
+2.2 defaultValue 默认值
+
+2.3 value 参数别名
+
+2.4 参数化绑定集合
+
+
+三：@RequestBody接受JSon格式Ajax请求
+
+JQuery： JSON.stringify( Array array )                                       数组转JSON字符串
+                contentType:"application/json;charset=UTF-8"         请求类型
+
+
+
+
+
+一：视图解析器
+       org.springframework.web.servlet.view.VelocityViewResolver
+       org.springframework.web.servlet.view.FreeMarkerViewResolver
+
+二：使用Freemarker视图解析器
+
+2.1 POM添加依赖
+
+        <dependency>
+            <groupId>org.freemarker</groupId>
+            <artifactId>freemarker</artifactId>
+            <version>2.3.23</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context-support</artifactId>
+            <version>4.1.6.RELEASE</version>
+        </dependency>
+
+2.2 SpringMVC 配置文件中配置Freemarker视图解析器
+
+    <!-- FreeMarker视图解析器与属性配置 -->
+    <bean id="viewResolver"
+        class="org.springframework.web.servlet.view.freemarker.FreeMarkerViewResolver">
+        <!--是否启用缓存 -->
+        <property name="cache" value="true" />
+        <!--自动添加到路径中的前缀 -->
+        <property name="prefix" value="" />
+        <!--自动添加到路径中的后缀 -->
+        <property name="suffix" value=".html" />
+        <!--指定视图渲染类 -->
+        <property name="viewClass"
+            value="org.springframework.web.servlet.view.freemarker.FreeMarkerView" />
+        <!-- 设置是否暴露Spring的macro辅助类库，默认为true -->
+        <property name="exposeSpringMacroHelpers" value="true" />
+        <!-- 是否应将所有request属性添加到与模板合并之前的模型。默认为false。 -->
+        <property name="exposeRequestAttributes" value="true" />
+        <!-- 是否应将所有session属性添加到与模板合并之前的模型。默认为false。 -->
+        <property name="exposeSessionAttributes" value="true" />
+        <!-- 在页面中使用${rc.contextPath}就可获得contextPath -->
+        <property name="requestContextAttribute" value="rc" />
+        <!--设置所有视图的内容类型，如果视图本身设置内容类型视图类可以忽略 -->
+        <property name="contentType" value="text/html;charset=UTF-8" />
+        <!-- 优先级，越小越前 -->
+        <property name="order" value="1" />
+    </bean>
+
+    <!-- 配置FreeMarker细节 -->
+    <bean id="freemarkerConfig"
+        class="org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer">
+        <!-- 模板路径 -->
+        <property name="templateLoaderPath" value="/WEB-INF/htmlviews" />
+        <property name="freemarkerSettings">
+            <props>
+                <!-- 刷新模板的周期，单位为秒 -->
+                <prop key="template_update_delay">5</prop>
+                <!--模板的编码格式 -->
+                <prop key="defaultEncoding">UTF-8</prop>
+                <!--url编码格式 -->
+                <prop key="url_escaping_charset">UTF-8</prop>
+                <!--此属性可以防止模板解析空值时的错误 -->
+                <prop key="classic_compatible">true</prop>
+                <!--该模板所使用的国际化语言环境选项-->
+                <prop key="locale">zh_CN</prop>
+                <!--布尔值格式-->
+                <prop key="boolean_format">true,false</prop>
+                <!--日期时间格式-->
+                <prop key="datetime_format">yyyy-MM-dd HH:mm:ss</prop>
+                <!--时间格式-->
+                <prop key="time_format">HH:mm:ss</prop>
+                <!--数字格式-->
+                <prop key="number_format">0.######</prop>
+                <!--自动开启/关闭空白移除，默认为true-->
+                <prop key="whitespace_stripping">true</prop>
+            </props>
+        </property>
+    </bean>
+
+一：基于Validator接口验证方式
+
+二：Annotaion JSR-303标准对象填充验证
+       JSR（Java Specification Requests）Java 规范提案。
+       JSR 303 – Bean Validation 是一个数据验证的规范。基于这个标准的实现有：hibernate-validator，Apache BVal等。
+
+2.1 添加POM依赖
+
+        <!--JSR303 Bean校验-->
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-validator</artifactId>
+            <version>5.2.2.Final</version>
+        </dependency>
+
+
+2.2 参数验证注解
+     @Valid                                    需要验证的参数
+     BindingResult bindingResult  绑定验证结果
+
+2.3 Bean验证注解
+
+空值验证
+
+@Null            验证对象是否为null
+
+@NotNull      验证对象是否不为null, 无法查检长度为0的字符串
+
+@NotEmpty  检查约束元素是否为NULL或者是EMPTY.
+
+@NotBlank   检查约束字符串是不是Null还有被Trim的长度是否大于0,只对字符串,且会去掉前后空格.
+
+
+
+逻辑验证
+
+@AssertTrue     验证 Boolean 对象是否为 true 
+
+@AssertFalse    验证 Boolean 对象是否为 false
+
+
+长度验证
+
+@Size(min=, max=)      验证对象（Array,Collection,Map,String）长度是否在给定的范围之内 
+
+@Length(min=, max=) 验证字符串长度是否在给定的范围内
+
+
+日期验证
+
+@Past         验证 Date 和 Calendar 对象是否在当前时间之前 
+
+@Future     验证 Date 和 Calendar 对象是否在当前时间之后
+
+
+正则验证
+
+@Pattern    验证 String 对象是否符合正则表达式的规则
+
+
+数值验证
+
+@Min            验证 Number 和 String 对象是否大等于指定的值 
+
+@Max            验证 Number 和 String 对象是否小等于指定的值 
+
+@DecimalMax 被标注的值必须不大于约束中指定的最大值. 这个约束的参数是一个通过BigDecimal定义的最大值的字符串表示.小数存在精度
+
+@DecimalMin 被标注的值必须不小于约束中指定的最小值. 这个约束的参数是一个通过BigDecimal定义的最小值的字符串表示.小数存在精度
+
+@Digits     验证 Number 和 String 的构成是否合法 
+
+@Digits(integer=,fraction=) 验证字符串是否是符合指定格式的数字，interger指定整数精度，fraction指定小数精度。
+
+
+范围验证
+
+@Range(min=, max=) 检查被注解对象的值是否处于min与max之间，闭区间，包含min与max值
+
+@Range(min=10000,max=50000,message="必须介于{2}-{1}之间")
+
+
+规范验证
+
+@Valid 递归的对关联对象进行校验, 如果关联对象是个集合或者数组,那么对其中的元素进行递归校验,如果是一个map,则对其中的值部分进行校验.(是否进行递归验证)，该注解使用在Action的参数上。
+
+@CreditCardNumber信用卡验证
+
+@Email  验证是否是邮件地址，如果为null,不进行验证，算通过验证。
+
+@ScriptAssert(lang= ,script=, alias=)  脚本验证
+
+@URL(protocol=,host=, port=,regexp=, flags=)   网络统一资源定位器格式验证
+
+
+一：文件上传
+
+1.1 web.xml配置Servlet上传参数
+
+        <!--Servlet3.0以上文件上传配置 -->
+        <multipart-config>
+            <max-file-size>5242880</max-file-size><!--上传单个文件的最大限制5MB -->
+            <max-request-size>20971520</max-request-size><!--请求的最大限制20MB，一次上传多个文件时一共的大小 -->
+            <file-size-threshold>0</file-size-threshold><!--当文件的大小超过临界值时将写入磁盘 -->
+        </multipart-config>
+
+1.2 修改SpringMVC配置文件中的文件上传解析器
+
+    <!--文件上传解析器 -->
+    <bean id="multipartResolver"
+        class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
+    </bean>
+
+
+1.3 处理上传的方法
+      增加参数 @RequestParam("face") MultipartFile[] files
+      增加参数 HttpServletRequest request
+      
+
+二：文件下载
+
+2.1 添加POM依赖
+
+    <!-- 从文件中快速读写byte数组的依赖 -->
+    <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-io</artifactId>
+        <version>1.3.2</version>
+    </dependency>
+
+2.2 处理下载文件的方法
+
+	@RequestMapping("/download")
+	public ResponseEntity<byte[]> download(
+			Model model,String filename,HttpServletRequest request
+			) throws Exception{
+		// 下载文件路径
+		String path = request.getServletContext().getRealPath("/WEB-INF/resources/downloads/");
+		File file = new File(path, filename);
+		// 设置响应头信息
+		HttpHeaders head = new HttpHeaders();
+		// 设置下载文件默认名称
+		head.setContentDispositionFormData("attachment", filename);
+		// 设置客户端浏览器接受响应数据的类型
+		head.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+		// 打开文件，读取文件数据，响应给客户端浏览器
+		return new ResponseEntity<byte[]>(FileUtils.readFileToByteArray(file), head, HttpStatus.CREATED);
+	}
+一：地址栏参数
+
+@RequestMapping("/方法/{id}/{page}/{pageSize}")
+
+public String 方法(@PathVariable Integer id,@PathVariable Integer page,@PathVariable Integer pageSize)
+
+
+二：分层架构与自动装载
+
+@Controller                               控制器
+@Service("SpringBean")           业务逻辑层
+@Repository("SpringBean")     数据访问层
+@Autowired                             自动装载
+
+1：自定义拦截器类  实现   org.springframework.web.servlet.HandlerInterceptor 接口
+
+     拦截通过        return true;
+     拦截不通过     response.sendRedirect( request.getContextPath()+"/controller/method" );
+                           return false;
+
+2：springmvc 配置文件 注册拦截器
+
+    <!--  拦截器   -->
+    <mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+		    <mvc:exclude-mapping path="/user/login"/>
+		    <mvc:exclude-mapping path="/user/logindo"/>
+		    <bean class="com.bwf.shop.interceptor.LoginInterceptor"/>  
+	    </mvc:interceptor> 
+    </mvc:interceptors>
